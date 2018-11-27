@@ -1,15 +1,32 @@
 {
   "name": "ethereum-bytecode-verifier-console",
   "version": "1.0.0",
-  "description": "A command line interface for verifying Ethereum contract bytecode",
+  "description": "A command line interface for verifying an Ethereum contract's bytecode",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "ethereum"
+    "ethereum",
+    "bytecode",
+    "verify",
+    "eth",
+    "smartcontract"
   ],
-  "author": "Shawn Tabrizi",
+  "homepage": "https://github.com/shawntabrizi/ethereum-bytecode-verifier-console",
+  "bugs": {
+    "url": "https://github.com/shawntabrizi/ethereum-bytecode-verifier-console/issues",
+    "email": "shawntabrizi@gmail.com"
+  },
+  "author": {
+    "name": "Shawn Tabrizi",
+    "email": "shawntabrizi@gmail.com",
+    "url": "https://shawntabrizi.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shawntabrizi/ethereum-bytecode-verifier-console.git"
+  },
   "license": "ISC",
   "bin": {
     "ethverify": "./index.js"
