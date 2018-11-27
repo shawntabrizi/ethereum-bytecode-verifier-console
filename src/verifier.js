@@ -19,6 +19,11 @@ const verifier = (settings, provider) => {
     var bytecode_from_compiler;
     var bytecode_from_blockchain;
 
+    // Semantic versioning
+    let solc_major = parseInt(solc_version.match(/v\d+?\.\d+?\.\d+?[+-]/gi)[0].match(/v\d+/g)[0].slice(1))
+    let solc_minor = parseInt(solc_version.match(/v\d+?\.\d+?\.\d+?[+-]/gi)[0].match(/\.\d+/g)[0].slice(1))
+    let solc_patch = parseInt(solc_version.match(/v\d+?\.\d+?\.\d+?[+-]/gi)[0].match(/\.\d+/g)[1].slice(1))
+
     solc.loadRemoteVersion(solc_version, function (err, solc_specific) {
         if (!err) {
             // if solc successfully loaded, compile the contract and get the JSON output
@@ -29,8 +34,7 @@ const verifier = (settings, provider) => {
             
             var fixed_bytecode;
 
-            if (parseInt(solc_version.match(/v\d+?\.\d+?\.\d+?[+-]/gi)[0].match(/\.\d+/g)[0].slice(1)) >= 4
-                && parseInt(solc_version.match(/v\d+?\.\d+?\.\d+?[+-]/gi)[0].match(/\.\d+/g)[1].slice(1)) >= 22) {
+            if (solc_minor >= 4 && solc_patch >= 22) {
                 // if solc version is at least 0.4.22, initial bytecode has 6080... instead of 6060...
                 var starting_point = bytecode.lastIndexOf('6080604052');
                 // a165627a7a72305820 is a fixed prefix of swarm info that was appended to contract bytecode
@@ -38,8 +42,7 @@ const verifier = (settings, provider) => {
                 var ending_point = bytecode.search('a165627a7a72305820');
 
                 fixed_bytecode = bytecode.slice(starting_point, ending_point);
-            } else if (parseInt(solc_version.match(/v\d+?\.\d+?\.\d+?[+-]/gi)[0].match(/\.\d+/g)[0].slice(1)) >= 4
-                && parseInt(solc_version.match(/v\d+?\.\d+?\.\d+?[+-]/gi)[0].match(/\.\d+/g)[1].slice(1)) >= 7) {
+            } else if (solc_minor >= 4 && solc_patch >= 7) {
                 // if solc version is at least 0.4.7, then swarm hash is included into the bytecode.
                 // every bytecode starts with a fixed opcode: "PUSH1 0x60 PUSH1 0x40 MSTORE"
                 // which is 6060604052 in bytecode whose length is 10
