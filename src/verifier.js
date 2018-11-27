@@ -26,8 +26,19 @@ const verifier = (settings, provider) => {
 
             // get bytecode from JSON output
             var bytecode = output['contracts'][file_name + ':' + contract_name]['runtimeBytecode'];
+            
+            var fixed_bytecode;
 
             if (parseInt(solc_version.match(/v\d+?\.\d+?\.\d+?[+-]/gi)[0].match(/\.\d+/g)[0].slice(1)) >= 4
+                && parseInt(solc_version.match(/v\d+?\.\d+?\.\d+?[+-]/gi)[0].match(/\.\d+/g)[1].slice(1)) >= 22) {
+                // if solc version is at least 0.4.22, initial bytecode has 6080... instead of 6060...
+                var starting_point = bytecode.lastIndexOf('6080604052');
+                // a165627a7a72305820 is a fixed prefix of swarm info that was appended to contract bytecode
+                // the beginning of swarm_info is always the ending point of the actual contract bytecode
+                var ending_point = bytecode.search('a165627a7a72305820');
+
+                fixed_bytecode = bytecode.slice(starting_point, ending_point);
+            } else if (parseInt(solc_version.match(/v\d+?\.\d+?\.\d+?[+-]/gi)[0].match(/\.\d+/g)[0].slice(1)) >= 4
                 && parseInt(solc_version.match(/v\d+?\.\d+?\.\d+?[+-]/gi)[0].match(/\.\d+/g)[1].slice(1)) >= 7) {
                 // if solc version is at least 0.4.7, then swarm hash is included into the bytecode.
                 // every bytecode starts with a fixed opcode: "PUSH1 0x60 PUSH1 0x40 MSTORE"
@@ -41,16 +52,17 @@ const verifier = (settings, provider) => {
                 // a165627a7a72305820 is a fixed prefix of swarm info that was appended to contract bytecode
                 // the beginning of swarm_info is always the ending point of the actual contract bytecode
                 var ending_point = bytecode.search('a165627a7a72305820');
-                // construct the actual deployed bytecode
-                bytecode_from_compiler = '0x' + bytecode.slice(starting_point, ending_point);
-                // testify with result from blockchain until the compile finishes.
-                testify_with_blochchain(solc_version);
+
+                fixed_bytecode = bytecode.slice(starting_point, ending_point);
             }
             else {
-                bytecode_from_compiler = '0x' + bytecode;
-                // testify with result from blockchain until the compile finishes.
-                testify_with_blochchain(solc_version);
+                fixed_bytecode =  bytecode;
             }
+            // construct actual bytecode
+            bytecode_from_compiler = '0x' + fixed_bytecode;
+            // testify with result from blockchain until the compile finishes.
+            testify_with_blochchain(solc_version);
+
         } else {
             console.error('Problem loading Solc version')
             process.exit(1)
