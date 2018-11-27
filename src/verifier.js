@@ -52,7 +52,8 @@ const verifier = (settings, provider) => {
                 testify_with_blochchain(solc_version);
             }
         } else {
-            console.log('solc_error');
+            console.error('Problem loading Solc version')
+            process.exit(1)
         }
     });
 
@@ -78,12 +79,14 @@ const verifier = (settings, provider) => {
                 // checking bytecode
                 if (bytecode_from_blockchain == bytecode_from_compiler) {
                     fs.writeFileSync('verified_deployed_bytecode.txt', bytecode_from_blockchain, 'utf-8');
-                    console.log('true')
+                    console.log('Contract is verified!')
+                    process.exit(0)
                 }
                 else {
                     fs.writeFileSync('from_blockchain.txt', bytecode_from_blockchain, 'utf-8');
                     fs.writeFileSync('from_compiler.txt', bytecode_from_compiler, 'utf-8');
-                    console.log('false')
+                    console.log('Contract does not match')
+                    process.exit(2)
                 }
             });
     }
