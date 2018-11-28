@@ -14,7 +14,13 @@ const verifier = (settings, provider) => {
     var file_path = file_folder + '/' + file_name;
 
     var input = {};
-    input[file_name] = fs.readFileSync(file_path, 'utf8');
+
+    try {
+        input[file_name] = fs.readFileSync(file_path, 'utf8');
+    } catch (err) {
+        console.error('File not found: ' + file_path);
+        process.exit(404)
+    }
 
     var bytecode_from_compiler;
     var bytecode_from_blockchain;
@@ -64,7 +70,7 @@ const verifier = (settings, provider) => {
             // construct actual bytecode
             bytecode_from_compiler = '0x' + fixed_bytecode;
             // testify with result from blockchain until the compile finishes.
-            testify_with_blochchain(solc_version);
+            testify_with_blochchain();
 
         } else {
             console.error('Problem loading Solc version')
@@ -72,25 +78,21 @@ const verifier = (settings, provider) => {
         }
     });
 
-    function testify_with_blochchain(solc_version) {
+    function testify_with_blochchain() {
         // using web3 getCode function to read from blockchain
         web3.eth.getCode(contract_address)
             .then(output => {
-                if (parseInt(solc_version.match(/v\d+?\.\d+?\.\d+?[+-]/gi)[0].match(/\.\d+/g)[0].slice(1)) >= 4
-                    && parseInt(solc_version.match(/v\d+?\.\d+?\.\d+?[+-]/gi)[0].match(/\.\d+/g)[1].slice(1)) >= 7) {
+                if (solc_minor >= 4 && solc_patch >= 7) {
                     // code stored at the contract address has no constructor or contract creation bytecode,
                     // only with swarm metadata appending at the back, therefore to get the actual deployed bytecode,
                     // just slice out the trailing swarm metadata.
                     var ending_point = output.search('a165627a7a72305820');
-
-                    var swarm_hash_full = output.slice(output.lastIndexOf("a165627a7a72305820"), -4);
-                    var swarm_hash = swarm_hash_full.slice(18);
-
                     bytecode_from_blockchain = output.slice(0, ending_point);
                 } else {
                     // if the solc version is less than 0.4.7, then just directly compared the two.
                     bytecode_from_blockchain = output;
                 }
+
                 // checking bytecode
                 if (bytecode_from_blockchain == bytecode_from_compiler) {
                     fs.writeFileSync('verified_deployed_bytecode.txt', bytecode_from_blockchain, 'utf-8');
