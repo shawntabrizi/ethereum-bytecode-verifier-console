@@ -11,16 +11,27 @@ const verifier = (settings, provider) => {
     let is_optimized = settings['is_optimized'];
     let file_folder = settings['file_folder'];
 
-    var file_path = file_folder + '/' + file_name;
-
     var input = {};
 
-    try {
-        input[file_name] = fs.readFileSync(file_path, 'utf8');
-    } catch (err) {
-        console.error('File not found: ' + file_path);
-        process.exit(404)
-    }
+    // Load all solidity files to handle imports
+    fs.readdir(file_folder, function(err, items) {
+        if (err) {
+            console.error("Problem opening directory: " + file_folder);
+            process.exit(403);
+        }
+        for (item in items) {
+            let file = items[item];
+            if (file.slice(-4) == ".sol") {
+                let file_path = file_folder + '/' + file;
+                try {
+                    input[file] = fs.readFileSync(file_path, 'utf8');
+                } catch (err) {
+                    console.error('Problem reading directory or files');
+                    process.exit(404)
+                }
+            }
+        }
+    })
 
     var bytecode_from_compiler;
     var bytecode_from_blockchain;

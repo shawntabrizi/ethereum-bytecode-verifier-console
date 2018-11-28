@@ -7,6 +7,7 @@ program
     .option('-n, --network <network>', 'Ethereum Network: mainnet, ropsten, kovan, rinkeby')
     .option('-s, --solc <version>', 'Solc Version: e.g. v0.4.10+commit.f0d539ae')
     .option('-f, --file <file>', 'Filename: e.g. MultiSigWalletWithDailyLimit.sol')
+    .option('-d, --directory <folder>', 'Directory with multiple .sol files: e.g. ./contracts')
     .option('-c, --contract <name>', 'Contract name: e.g. MultiSigWalletWithDailyLimit')
     .option('-a, --address <address>', 'Contract Address: e.g. 0x851b7f3ab81bd8df354f0d7640efcd7288553419')
     .option('-o, --optimized', 'Optimized')
@@ -22,13 +23,15 @@ program
         var provider = net_to_provider[program.network]
 
         var settings = {
-            'file_folder': process.cwd(),
+            'file_folder': program.directory ? program.directory : process.cwd(),
             'solc_version': program.solc,
             'file_name': program.file,
             'contract_name': program.contract ? program.contract : program.file.slice(0, -4),
             'contract_address': program.address,
             'is_optimized': program.optimized ? 1 : 0
         }
+
+        console.log(settings);
 
         verifier(settings, provider);
     })
